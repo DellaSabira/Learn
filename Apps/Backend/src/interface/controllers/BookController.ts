@@ -1,11 +1,18 @@
+import { validate } from "class-validator";
 import { Request, Response } from "express";
-import { GetAllBooks} from "../../use-cases/getAllBooks";
+import { CreateBookDto } from "../dto/CreateBookDto";
 import { DIContainer } from "../../infrastructure/DIContainer";
 
 export class BookController {
     private getAllBooks = DIContainer.getGetAllBooksUseCase();
 
     async getAll(req: Request, res: Response) {
+        const dto = Object.assign(new CreateBookDto(), req.body);
+        const errors = await validate(dto);
+
+        if(errors.length > 0 ) {
+            return res.status(400).json({ errors })
+        }
         const books = await this.getAllBooks.execute();
         res.json(books);
     }
