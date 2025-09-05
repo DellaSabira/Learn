@@ -1,8 +1,16 @@
 import { Book } from "../../domain/entities/Books";
 import { BookRepository } from "../../domain/interfaces/BookRepository";
-import { BookModel } from "../models/BookModel";
+import { BookModel, IBook } from "../models/BookModel";
 
 export class MongoBookRepository implements BookRepository {
+    private toDomain(bookDoc: IBook): Book {
+        return new Book (
+            bookDoc.id.toString(), // map _id → id
+            bookDoc.title,
+            bookDoc.author,
+            bookDoc.publishedDate
+        );
+    }
     async findAll(): Promise<Book[]>{
         return await BookModel.find();
     }
@@ -12,9 +20,13 @@ export class MongoBookRepository implements BookRepository {
     }
 
     async create(book: Book): Promise<Book> {
-        const newBook = new BookModel(book);
+        const newBook = new BookModel({
+            title: book.title,
+            author: book.author,
+            publishedDate: book.publishedDate,
+        });
         await newBook.save();
-        return newBook;
+        return this.toDomain(newBook);
     }
 
     async update(book: Book): Promise<void> {
